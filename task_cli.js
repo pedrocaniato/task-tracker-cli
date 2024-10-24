@@ -124,7 +124,15 @@ function listTasks(status) {
 // Captura os argumentos da linha de comando
 const action = process.argv[2]; // Ação (add, update, delete, list)
 const id = process.argv[3] ? Number(process.argv[3]) : undefined; // ID da tarefa
-const description = process.argv[3]; // Descrição da tarefa (se aplicável)
+
+let description;
+if (action === 'add') {
+    // Para a ação 'add', a descrição estará no índice 3
+    description = process.argv.slice(3).join(' '); // Junte todos os argumentos a partir do índice 3
+} else {
+    // Para as outras ações, a descrição estará no índice 4
+    description = process.argv[4];
+}
 
 if (action === 'add' && description) {
     addTask(description);
