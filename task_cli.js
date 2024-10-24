@@ -1,8 +1,8 @@
 const fs = require('fs');
 
+const tasksFile = 'tasks.json';
+
 function addTask(description) {
-    const tasksFile = 'tasks.json';
-    
     // Ler o arquivo JSON, se não existir, criar um array vazio
     fs.readFile(tasksFile, 'utf8', (err, data) => {
         if (err) {
