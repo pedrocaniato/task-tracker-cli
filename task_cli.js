@@ -1,8 +1,8 @@
 const fs = require('fs');
 
+const tasksFile = 'tasks.json';
+
 function addTask(description) {
-    const tasksFile = 'tasks.json';
-    
     // Ler o arquivo JSON, se não existir, criar um array vazio
     fs.readFile(tasksFile, 'utf8', (err, data) => {
         if (err) {
@@ -15,8 +15,8 @@ function addTask(description) {
             }
         }
 
-        // Converter os dados lidos de volta para um array de objetos
-        const tasks = JSON.parse(data);
+        // Converter os dados lidos de volta para um array de objetos, se não tiver nada, ele retorna un array vazio
+        const tasks = data ? JSON.parse(data) : [];
         
          // Criar um novo objeto de tarefa
          const newTask = {
@@ -39,15 +39,9 @@ function addTask(description) {
             }
         });
     });
-    const action = process.argv[2]; // Ação (add, update, delete)
-const description = process.argv[3]; // Descrição da tarefa
+}
 
-if (action === 'add' && description) {
-    addTask(description);
-} else {
-    console.log('Uso: node task_cli.js add "Descrição da Tarefa"');
-}
-}
+
 
 function updateTask(id, newDescription) {
     fs.readFile(tasksFile, 'utf8', (err, data) => {
@@ -77,14 +71,6 @@ function updateTask(id, newDescription) {
     });
 }
 
-// E, para capturar a ação e a descrição, você pode adicionar algo como:
-if (action === 'update' && description) {
-    const id = parseInt(process.argv[3]); // O ID da tarefa a ser atualizado
-    updateTask(id, description);
-} else {
-    console.log('Uso: node task_cli.js update <ID> "Nova Descrição"');
-}
-
 function deleteTask(id) {
     fs.readFile(tasksFile, 'utf8', (err, data) => {
         if (err) {
@@ -111,13 +97,6 @@ function deleteTask(id) {
     });
 }
 
-if (action === 'delete') {
-    const id = parseInt(description); // Usando a descrição para o ID
-    deleteTask(id);
-} else {
-    console.log('Uso: node task_cli.js delete <ID>');
-}
-
 function listTasks(status) {
     fs.readFile(tasksFile, 'utf8', (err, data) => {
         if (err) {
@@ -142,10 +121,31 @@ function listTasks(status) {
     });
 }
 
-if (action === 'list') {
-    const status = description; // `description` pode conter o status opcional
-    listTasks(status);
+// Captura os argumentos da linha de comando
+const action = process.argv[2]; // Ação (add, update, delete, list)
+const id = process.argv[3] ? Number(process.argv[3]) : undefined; // ID da tarefa
+
+let description;
+if (action === 'add') {
+    // Para a ação 'add', a descrição estará no índice 3
+    description = process.argv.slice(3).join(' '); // Junte todos os argumentos a partir do índice 3
 } else {
-    console.log('Uso: node task_cli.js list [status]');
-    console.log('Status pode ser: todo, in-progress, done');
+    // Para as outras ações, a descrição estará no índice 4
+    description = process.argv[4];
+}
+
+if (action === 'add' && description) {
+    addTask(description);
+} else if (action === 'delete' && id) {
+    deleteTask(id);
+} else if (action === 'update' && id && description) {
+    updateTask(id, description);
+} else if (action === 'list') {
+    listTasks(description); // Usar description como status opcional
+} else {
+    console.log('Uso:');
+    console.log('  node task_cli.js add "Descrição da Tarefa"');
+    console.log('  node task_cli.js delete ID');
+    console.log('  node task_cli.js update ID "Nova Descrição"');
+    console.log('  node task_cli.js list "status" (opcional)');
 }
