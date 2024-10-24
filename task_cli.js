@@ -15,8 +15,8 @@ function addTask(description) {
             }
         }
 
-        // Converter os dados lidos de volta para um array de objetos
-        const tasks = JSON.parse(data);
+        // Converter os dados lidos de volta para um array de objetos, se não tiver nada, ele retorna un array vazio
+        const tasks = data ? JSON.parse(data) : [];
         
          // Criar um novo objeto de tarefa
          const newTask = {
