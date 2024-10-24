@@ -39,15 +39,9 @@ function addTask(description) {
             }
         });
     });
-    const action = process.argv[2]; // Ação (add, update, delete)
-const description = process.argv[3]; // Descrição da tarefa
+}
 
-if (action === 'add' && description) {
-    addTask(description);
-} else {
-    console.log('Uso: node task_cli.js add "Descrição da Tarefa"');
-}
-}
+
 
 function updateTask(id, newDescription) {
     fs.readFile(tasksFile, 'utf8', (err, data) => {
@@ -77,14 +71,6 @@ function updateTask(id, newDescription) {
     });
 }
 
-// E, para capturar a ação e a descrição, você pode adicionar algo como:
-if (action === 'update' && description) {
-    const id = parseInt(process.argv[3]); // O ID da tarefa a ser atualizado
-    updateTask(id, description);
-} else {
-    console.log('Uso: node task_cli.js update <ID> "Nova Descrição"');
-}
-
 function deleteTask(id) {
     fs.readFile(tasksFile, 'utf8', (err, data) => {
         if (err) {
@@ -111,13 +97,6 @@ function deleteTask(id) {
     });
 }
 
-if (action === 'delete') {
-    const id = parseInt(description); // Usando a descrição para o ID
-    deleteTask(id);
-} else {
-    console.log('Uso: node task_cli.js delete <ID>');
-}
-
 function listTasks(status) {
     fs.readFile(tasksFile, 'utf8', (err, data) => {
         if (err) {
@@ -142,10 +121,23 @@ function listTasks(status) {
     });
 }
 
-if (action === 'list') {
-    const status = description; // `description` pode conter o status opcional
-    listTasks(status);
+// Captura os argumentos da linha de comando
+const action = process.argv[2]; // Ação (add, update, delete, list)
+const id = process.argv[3] ? Number(process.argv[3]) : undefined; // ID da tarefa
+const description = process.argv[3]; // Descrição da tarefa (se aplicável)
+
+if (action === 'add' && description) {
+    addTask(description);
+} else if (action === 'delete' && id) {
+    deleteTask(id);
+} else if (action === 'update' && id && description) {
+    updateTask(id, description);
+} else if (action === 'list') {
+    listTasks(description); // Usar description como status opcional
 } else {
-    console.log('Uso: node task_cli.js list [status]');
-    console.log('Status pode ser: todo, in-progress, done');
+    console.log('Uso:');
+    console.log('  node task_cli.js add "Descrição da Tarefa"');
+    console.log('  node task_cli.js delete ID');
+    console.log('  node task_cli.js update ID "Nova Descrição"');
+    console.log('  node task_cli.js list "status" (opcional)');
 }
