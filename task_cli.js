@@ -14,9 +14,8 @@ function addTask(description) {
                 return;
             }
         }
-
-        // Converter os dados lidos de volta para um array de objetos, se não tiver nada, ele retorna un array vazio
-        const tasks = data ? JSON.parse(data) : [];
+        // Converter os dados lidos de volta para um array de objetos
+        const tasks = JSON.parse(data);
         
          // Criar um novo objeto de tarefa
          const newTask = {
@@ -26,10 +25,8 @@ function addTask(description) {
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
         };
-
         // Adicionar a nova tarefa ao array de tarefas
         tasks.push(newTask);
-
         // Escrever o array atualizado de volta no arquivo
         fs.writeFile(tasksFile, JSON.stringify(tasks, null, 2), (err) => {
             if (err) {
@@ -39,11 +36,12 @@ function addTask(description) {
             }
         });
     });
+    
 }
-
-
-
 function updateTask(id, newDescription) {
+    // Converte o id para um número, caso seja uma string
+    const taskId = parseInt(id, 10);
+    
     fs.readFile(tasksFile, 'utf8', (err, data) => {
         if (err) {
             console.error('Erro ao ler o arquivo:', err);
@@ -51,42 +49,41 @@ function updateTask(id, newDescription) {
         }
         
         let tasks = JSON.parse(data);
-        const task = tasks.find(task => task.id === id);
+        const task = tasks.find(task => task.id === taskId);
         
         if (!task) {
-            console.log(`Tarefa com ID ${id} não encontrada.`);
+            console.log(`Tarefa com ID ${taskId} não encontrada.`);
             return;
         }
         
         task.description = newDescription;
         task.updatedAt = new Date().toISOString();
-
         fs.writeFile(tasksFile, JSON.stringify(tasks, null, 2), err => {
             if (err) {
                 console.error('Erro ao salvar as tarefas:', err);
                 return;
             }
-            console.log(`Tarefa ${id} atualizada com sucesso!`);
+            console.log(`Tarefa ${taskId} atualizada com sucesso!`);
         });
     });
 }
 
+
 function deleteTask(id) {
+    const taskId = parseInt(id, 10);
+
     fs.readFile(tasksFile, 'utf8', (err, data) => {
         if (err) {
             console.error('Erro ao ler o arquivo:', err);
             return;
         }
-
         let tasks = JSON.parse(data);
         const initialLength = tasks.length;
-        tasks = tasks.filter(task => task.id !== id); // Remove a tarefa com o ID fornecido
-
+        tasks = tasks.filter(task => task.id !== taskId); // Remove a tarefa com o ID fornecido
         if (tasks.length === initialLength) {
             console.log(`Tarefa com ID ${id} não encontrada.`);
             return;
         }
-
         fs.writeFile(tasksFile, JSON.stringify(tasks, null, 2), err => {
             if (err) {
                 console.error('Erro ao salvar as tarefas:', err);
@@ -103,49 +100,46 @@ function listTasks(status) {
             console.error('Erro ao ler o arquivo:', err);
             return;
         }
-
         let tasks = JSON.parse(data);
         
         if (status) {
             tasks = tasks.filter(task => task.status === status);
         }
-
         if (tasks.length === 0) {
             console.log('Nenhuma tarefa encontrada.');
             return;
         }
-
         tasks.forEach(task => {
             console.log(`ID: ${task.id}, Descrição: ${task.description}, Status: ${task.status}, Criado em: ${task.createdAt}`);
         });
     });
 }
 
-// Captura os argumentos da linha de comando
-const action = process.argv[2]; // Ação (add, update, delete, list)
-const id = process.argv[3] ? Number(process.argv[3]) : undefined; // ID da tarefa
-
-let description;
-if (action === 'add') {
-    // Para a ação 'add', a descrição estará no índice 3
-    description = process.argv.slice(3).join(' '); // Junte todos os argumentos a partir do índice 3
-} else {
-    // Para as outras ações, a descrição estará no índice 4
-    description = process.argv[4];
-}
-
-if (action === 'add' && description) {
-    addTask(description);
-} else if (action === 'delete' && id) {
-    deleteTask(id);
-} else if (action === 'update' && id && description) {
-    updateTask(id, description);
-} else if (action === 'list') {
-    listTasks(description); // Usar description como status opcional
-} else {
-    console.log('Uso:');
-    console.log('  node task_cli.js add "Descrição da Tarefa"');
-    console.log('  node task_cli.js delete ID');
-    console.log('  node task_cli.js update ID "Nova Descrição"');
-    console.log('  node task_cli.js list "status" (opcional)');
+const action = process.argv[2]; // Ação (add, update, delete)
+let description // Descrição da tarefa
+let id
+switch(action){
+    case 'add':
+        description = process.argv[3]
+        addTask(description)
+        break
+    case 'update':
+        id = process.argv[3]
+        description = process.argv[4]
+        updateTask(id,description)
+        break
+    case 'list':
+        const status = process.argv[3];
+        listTasks(status)
+        break
+    case 'delete':
+        id = process.argv[3]
+        deleteTask(id)
+        break
+    default:
+        console.log('Uso:');
+        console.log('  node task_cli.js add "Descrição da Tarefa"');
+        console.log('  node task_cli.js delete ID');
+        console.log('  node task_cli.js update ID "Nova Descrição"');
+        console.log('  node task_cli.js list "status" (opcional)');
 }
